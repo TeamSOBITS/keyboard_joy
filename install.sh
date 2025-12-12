@@ -7,6 +7,9 @@ echo "╔══╣ Setup: Keyboard Joy (STARTING) ╠══╗"
 DIR=`pwd`
 cd ..
 
+sudo apt-get install -y \
+    python3-tk
+
 pip3 install pynput
 
 # Go back to previous directory

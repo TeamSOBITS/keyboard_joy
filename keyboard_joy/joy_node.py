@@ -9,6 +9,9 @@ import yaml
 import os
 from ament_index_python.packages import get_package_share_directory
 
+import tkinter as tk
+import threading
+
 class KeyboardJoy(Node):
     def __init__(self):
         super().__init__('keyboard_joy')
@@ -53,6 +56,32 @@ class KeyboardJoy(Node):
         # Create a timer for gradually updating active axes
         self.increment_timer = self.create_timer(self.axis_increment_rate, self.update_active_axes)
 
+        # GUI window to manage focus
+        self.enable_input = False
+
+        # Start the GUI in a separate thread
+        gui_thread = threading.Thread(target=self.start_gui_window, daemon=True)
+        gui_thread.start()
+
+    def start_gui_window(self):
+        root = tk.Tk()
+        root.title("KeyboardJoy Control Window")
+        root.geometry("500x400")
+
+        label = tk.Label(root, text="Keyboard Joy")
+        label.pack(expand=True)
+
+        root.bind("<FocusIn>", self.on_focus_in)
+        root.bind("<FocusOut>", self.on_focus_out)
+
+        root.mainloop()
+
+    def on_focus_in(self, event):
+        self.enable_input = True
+
+    def on_focus_out(self, event):
+        self.enable_input = False
+
     def load_key_mappings(self):
         """Load key mappings and parameters from a YAML file."""
         config_file_path = self.get_parameter('config').get_parameter_value().string_value
@@ -83,6 +112,8 @@ class KeyboardJoy(Node):
 
     def on_press(self, key):
         """Callback for keyboard key press events."""
+        if not self.enable_input:
+            return
         with self.lock:
             key_str = self.key_to_string(key)
             if key_str in self.axis_mappings:
@@ -101,6 +132,8 @@ class KeyboardJoy(Node):
 
     def on_release(self, key):
         """Callback for keyboard key release events."""
+        if not self.enable_input:
+            return
         with self.lock:
             key_str = self.key_to_string(key)
             if key_str in self.axis_mappings:
