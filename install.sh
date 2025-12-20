@@ -10,7 +10,7 @@ cd ..
 sudo apt-get install -y \
     python3-tk
 
-pip3 install pynput
+pip3 install pynput --break-system-packages
 
 # Go back to previous directory
 cd ${DIR}
